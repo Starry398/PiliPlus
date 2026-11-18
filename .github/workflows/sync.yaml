@@ -14,10 +14,6 @@ on:
         required: false
         type: boolean
         default: false
-  push:
-    paths:
-      - 'starry/xml/**'
-      - '.github/workflows/sync.yaml'
 
 concurrency:
   group: sync
@@ -38,7 +34,6 @@ jobs:
       - id: r
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EVENT: ${{ github.event_name }}
           INPUT_TAG: ${{ github.event.inputs.upstream_tag }}
           INPUT_TEST: ${{ github.event.inputs.test_only }}
         run: |
@@ -54,7 +49,7 @@ jobs:
           echo "上游 tag: $TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-          if [ "$EVENT" = "push" ] || [ "$INPUT_TEST" = "true" ]; then
+          if [ "$INPUT_TEST" = "true" ]; then
             echo "do_build=true" >> "$GITHUB_OUTPUT"
             echo "do_release=false" >> "$GITHUB_OUTPUT"
             echo "模式: 测试包（不发版）"
