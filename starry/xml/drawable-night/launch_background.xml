@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 夜间启动背景：深色底 + 透明底图标，去掉原 splash.png 的白色方块 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <bitmap android:gravity="fill" android:src="@drawable/background"/>
+    </item>
+    <item
+        android:drawable="@drawable/splash_night_logo"
+        android:gravity="center" />
+</layer-list>
