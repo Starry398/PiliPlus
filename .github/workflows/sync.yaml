@@ -22,6 +22,9 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  PKG_NAME: com.example.piliplus.sky
+
 jobs:
   resolve:
     name: Resolve upstream tag
@@ -98,6 +101,19 @@ jobs:
             cp -v "$f" "$dst/$rel"
           done
 
+      - name: 改包名
+        shell: bash
+        run: |
+          set -e
+          f=android/app/build.gradle.kts
+          sed -i "s|applicationId = \"com.example.piliplus\"|applicationId = \"$PKG_NAME\"|" "$f"
+          if ! grep -q "applicationId = \"$PKG_NAME\"" "$f"; then
+            echo "::error::applicationId 替换失败"
+            grep -n 'applicationId' "$f"
+            exit 1
+          fi
+          echo "包名:"; grep -n 'applicationId = ' "$f"
+
       - name: 写入签名
         shell: bash
         env:
@@ -148,7 +164,19 @@ jobs:
         run: |
           set -e
           NAME="${TAG#v}"
-          NUM=$(git rev-list --count HEAD)
+          if ! echo "$NAME" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::tag 不是 x.y.z 格式: $NAME"
+            exit 1
+          fi
+          MAJOR="${NAME%%.*}"
+          REST="${NAME#*.}"
+          MINOR="${REST%%.*}"
+          PATCH="${REST#*.}"
+          if [ "$MINOR" -ge 100 ] || [ "$PATCH" -ge 100 ]; then
+            echo "::error::minor/patch 超过 99，编码方案需调整: $NAME"
+            exit 1
+          fi
+          NUM=$((MAJOR*10000 + MINOR*100 + PATCH))
           echo "versionName=$NAME versionCode=$NUM"
           flutter build apk --release \
             --target-platform android-arm64 \
@@ -157,7 +185,7 @@ jobs:
             --dart-define-from-file=pili_release.json \
             --no-pub
 
-      - name: 校验签名
+      - name: 校验签名与包名
         shell: bash
         run: |
           set -e
@@ -166,6 +194,11 @@ jobs:
           "$ANDROID_HOME/build-tools/$BT/apksigner" verify --print-certs "$APK" | tee /tmp/certs.txt
           if grep -qi "CN=Android Debug" /tmp/certs.txt; then
             echo "::error::APK 仍是 debug 签名，检查 secrets"
+            exit 1
+          fi
+          "$ANDROID_HOME/build-tools/$BT/aapt2" dump badging "$APK" | grep -E "^package:" | tee /tmp/badging.txt
+          if ! grep -q "name='$PKG_NAME'" /tmp/badging.txt; then
+            echo "::error::包名不是 $PKG_NAME"
             exit 1
           fi
 
