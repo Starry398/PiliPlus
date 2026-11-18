@@ -101,14 +101,14 @@ jobs:
       - name: 写入签名
         shell: bash
         env:
-          KS_B64: ${{ secrets.KEYSTORE_B64 }}
-          KS_PASS: ${{ secrets.KEYSTORE_PASS }}
+          KS_B64: ${{ secrets.KEYSTORE }}
+          KS_PASS: ${{ secrets.STORE_PASSWORD }}
           KS_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KS_KEYPASS: ${{ secrets.KEY_PASS }}
+          KS_KEYPASS: ${{ secrets.KEY_PASSWORD }}
         run: |
           set -e
           if [ -z "$KS_B64" ]; then
-            echo "::error::缺少 KEYSTORE_B64"
+            echo "::error::缺少 KEYSTORE"
             exit 1
           fi
           echo "$KS_B64" | base64 -d > android/app/key.jks
