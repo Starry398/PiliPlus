@@ -178,18 +178,32 @@ jobs:
           fi
           NUM=$((MAJOR*10000 + MINOR*100 + PATCH))
           echo "versionName=$NAME versionCode=$NUM"
+          # --split-per-abi 才会把插件的 prebuilt so 按 ABI 拆开；
+          # 只用 --target-platform 的话，libmpv 等 so 会同时带 arm64 和 v7a，体积多约 13MB
           flutter build apk --release \
+            --split-per-abi \
             --target-platform android-arm64 \
             --build-name "$NAME" \
             --build-number "$NUM" \
             --dart-define-from-file=pili_release.json \
             --no-pub
+          ls -lh build/app/outputs/flutter-apk/
 
       - name: 校验签名与包名
         shell: bash
         run: |
           set -e
-          APK=$(find build/app/outputs/flutter-apk -name '*.apk' | head -1)
+          APK=$(find build/app/outputs/flutter-apk -name 'app-arm64-v8a-release.apk' | head -1)
+          if [ -z "$APK" ]; then
+            APK=$(find build/app/outputs/flutter-apk -name '*arm64*release.apk' | head -1)
+          fi
+          if [ -z "$APK" ]; then
+            echo "::error::找不到 arm64 APK"
+            ls -l build/app/outputs/flutter-apk/
+            exit 1
+          fi
+          echo "APK: $APK"
+          ls -lh "$APK"
           BT=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
           "$ANDROID_HOME/build-tools/$BT/apksigner" verify --print-certs "$APK" | tee /tmp/certs.txt
           if grep -qi "CN=Android Debug" /tmp/certs.txt; then
@@ -208,9 +222,13 @@ jobs:
           TAG: ${{ needs.resolve.outputs.tag }}
         run: |
           set -e
-          APK=$(find build/app/outputs/flutter-apk -name '*.apk' | head -1)
+          APK=$(find build/app/outputs/flutter-apk -name 'app-arm64-v8a-release.apk' | head -1)
+          if [ -z "$APK" ]; then
+            APK=$(find build/app/outputs/flutter-apk -name '*arm64*release.apk' | head -1)
+          fi
           mkdir -p out
           cp "$APK" "out/PiliPlus_${TAG}_arm64.apk"
+          ls -lh out/
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
@@ -237,4 +255,5 @@ jobs:
           name: ${{ needs.resolve.outputs.tag }}
           files: PiliPlus_*_arm64.apk
           generate_release_notes: true
+          overwrite_files: true
           token: ${{ secrets.GITHUB_TOKEN }}
