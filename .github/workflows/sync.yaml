@@ -15,6 +15,11 @@ on:
         required: false
         type: boolean
         default: false
+      force:
+        description: '忽略「已有同名 release」，强制重建并覆盖 asset'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: sync
@@ -40,6 +45,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_TAG: ${{ github.event.inputs.upstream_tag }}
           INPUT_TEST: ${{ github.event.inputs.test_only }}
+          INPUT_FORCE: ${{ github.event.inputs.force }}
         run: |
           set -e
           TAG="$INPUT_TAG"
@@ -60,8 +66,15 @@ jobs:
             exit 0
           fi
 
+          if [ "$INPUT_FORCE" = "true" ]; then
+            echo "do_build=true" >> "$GITHUB_OUTPUT"
+            echo "do_release=true" >> "$GITHUB_OUTPUT"
+            echo "模式: 强制重建（忽略已有 release）"
+            exit 0
+          fi
+
           if gh api "repos/Starry398/PiliPlus/releases/tags/$TAG" >/dev/null 2>&1; then
-            echo "本仓库已有 $TAG 的 release，跳过"
+            echo "本仓库已有 $TAG 的 release，跳过（需要重发请勾 force）"
             echo "do_build=false" >> "$GITHUB_OUTPUT"
             echo "do_release=false" >> "$GITHUB_OUTPUT"
           else
