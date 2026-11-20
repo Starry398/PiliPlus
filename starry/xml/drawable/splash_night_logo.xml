@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 夜间启动图标：透明底，深灰圆角块 + 浅蓝 P。
-     画布 260、图形居中（group 平移 76），块占比 27.3%（71/260），
+     画布 260，块 71x71 居中（94.5~165.5），占比 27.3%，
      抵消 Android 12 splash 把自定义 drawable 拉伸进 240dp 容器的放大，
      对齐上游夜间原版的视觉尺寸（块宽约 172px @1080p，P 高约 80px）。
-     块色 #2E2F31（自 2.2.2 起）。 -->
+     块色 #2E2F31（自 2.2.2 起）。
+     注意：块 path 用画布绝对坐标、不加 group；P path 原始坐标范围
+     x 32.65~68.72 / y 35.77~72.22，靠 group translate(79.3,76) 居中到 (130,130)。 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="260"
     android:viewportHeight="260">
-    <group
-        android:translateX="76"
-        android:translateY="76">
-        <path
-            android:fillColor="#2E2F31"
-            android:pathData="M110,94.5h40a15.5,15.5 0 0 1 15.5,15.5v40a15.5,15.5 0 0 1 -15.5,15.5h-40a15.5,15.5 0 0 1 -15.5,-15.5v-40a15.5,15.5 0 0 1 15.5,-15.5z" />
-    </group>
+    <path
+        android:fillColor="#2E2F31"
+        android:pathData="M110,110h40a15.5,15.5 0 0 1 15.5,15.5v40a15.5,15.5 0 0 1 -15.5,15.5h-40a15.5,15.5 0 0 1 -15.5,-15.5v-40a15.5,15.5 0 0 1 15.5,-15.5z" />
     <group
         android:translateX="79.3"
         android:translateY="76">
