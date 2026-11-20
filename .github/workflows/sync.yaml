@@ -11,7 +11,7 @@ on:
         required: false
         default: ''
       test_only:
-        description: '只出测试包，不发 release'
+        description: '只出测试包（发布到 tag=test 的 release，不碰正式版本）'
         required: false
         type: boolean
         default: false
@@ -41,8 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.r.outputs.tag }}
+      out_tag: ${{ steps.r.outputs.out_tag }}
       do_build: ${{ steps.r.outputs.do_build }}
-      do_release: ${{ steps.r.outputs.do_release }}
     steps:
       - id: r
         env:
@@ -64,15 +64,16 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
           if [ "$INPUT_TEST" = "true" ]; then
+            echo "模式: 测试包（发布到 tag=test）"
+            echo "out_tag=test" >> "$GITHUB_OUTPUT"
             echo "do_build=true" >> "$GITHUB_OUTPUT"
-            echo "do_release=false" >> "$GITHUB_OUTPUT"
-            echo "模式: 测试包（不发版）"
             exit 0
           fi
 
+          echo "out_tag=$TAG" >> "$GITHUB_OUTPUT"
+
           if [ "$INPUT_FORCE" = "true" ]; then
             echo "do_build=true" >> "$GITHUB_OUTPUT"
-            echo "do_release=true" >> "$GITHUB_OUTPUT"
             echo "模式: 强制重建（忽略已有 release）"
             exit 0
           fi
@@ -80,10 +81,8 @@ jobs:
           if gh api "repos/Starry398/PiliPlus/releases/tags/$TAG" >/dev/null 2>&1; then
             echo "本仓库已有 $TAG 的 release，跳过（需要重发请勾 force）"
             echo "do_build=false" >> "$GITHUB_OUTPUT"
-            echo "do_release=false" >> "$GITHUB_OUTPUT"
           else
             echo "do_build=true" >> "$GITHUB_OUTPUT"
-            echo "do_release=true" >> "$GITHUB_OUTPUT"
           fi
 
   build:
@@ -297,7 +296,7 @@ jobs:
   release:
     name: Publish release
     needs: [resolve, build]
-    if: needs.resolve.outputs.do_release == 'true'
+    if: needs.resolve.outputs.do_build == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: 下载产物
@@ -305,27 +304,37 @@ jobs:
         with:
           name: apk
 
-      - name: 清理旧命名 asset（xxx_arm64.apk）
+      - name: 清理旧 asset 与旧 release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.resolve.outputs.tag }}
+          OUT_TAG: ${{ needs.resolve.outputs.out_tag }}
         run: |
           set +e
-          ids=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
-            --jq '.assets[] | select(.name | endswith("_arm64.apk")) | .id')
-          for id in $ids; do
-            echo "删除旧 asset id=$id"
-            gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$id"
-          done
+          if [ "$OUT_TAG" = "test" ]; then
+            # 测试包每次重建，直接把旧 release 删掉重发，避免 asset 堆积
+            rid=$(gh api "repos/${{ github.repository }}/releases/tags/test" --jq .id 2>/dev/null)
+            if [ -n "$rid" ]; then
+              echo "删除旧 test release id=$rid"
+              gh api -X DELETE "repos/${{ github.repository }}/releases/$rid"
+            fi
+          else
+            ids=$(gh api "repos/${{ github.repository }}/releases/tags/$OUT_TAG" \
+              --jq '.assets[] | select(.name | endswith("_arm64.apk")) | .id')
+            for id in $ids; do
+              echo "删除旧 asset id=$id"
+              gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$id"
+            done
+          fi
           echo done
 
       - name: 发布 release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.resolve.outputs.tag }}
-          name: ${{ needs.resolve.outputs.tag }}
-          files: PiliPlus_*_arm64-v8a.apk
-          generate_release_notes: true
+          tag_name: ${{ needs.resolve.outputs.out_tag }}
+          name: ${{ needs.resolve.outputs.out_tag == 'test' && 'test build' || needs.resolve.outputs.out_tag }}
+          body: ${{ needs.resolve.outputs.out_tag == 'test' && format('测试包 · 上游 {0} · run #{1}', needs.resolve.outputs.tag, github.run_number) || '' }}
+          files: PiliPlus_*_arm64-v8a*.apk
+          generate_release_notes: ${{ needs.resolve.outputs.out_tag != 'test' }}
           overwrite_files: true
           token: ${{ secrets.GITHUB_TOKEN }}
