@@ -8,7 +8,8 @@
         <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowSplashScreenBackground">#212121</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_night_logo</item>
+        <!-- 用上游原图抠掉白底后的 PNG（CI 里由 Pillow 生成），比例天然正确 -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_night_icon</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
