@@ -190,8 +190,14 @@ jobs:
             echo "::error::minor/patch 超过 99，编码方案需调整: $NAME"
             exit 1
           fi
-          NUM=$((MAJOR*10000 + MINOR*100 + PATCH))
-          echo "versionName=$NAME versionCode=$NUM"
+          # 版本基数 major*10000 + minor*100 + patch，再 ×1000 给「构建序号」留位，
+          # 保证同一版本号每次重建的 versionCode 都不同（否则同 versionCode+同签名
+          # 会被安装器当成「已是最新」而静默跳过覆盖安装）。
+          # 2.2.1 + 第 N 次构建 → 20201000 + (N % 1000)，区间严格小于下一版本 20202000。
+          BASE=$((MAJOR*10000 + MINOR*100 + PATCH))
+          SEQ=$((GITHUB_RUN_NUMBER % 1000))
+          NUM=$((BASE*1000 + SEQ))
+          echo "versionName=$NAME versionCode=$NUM (base=$BASE seq=$SEQ)"
           # --split-per-abi 才会把插件的 prebuilt so 按 ABI 拆开；
           # 只用 --target-platform 的话，libmpv 等 so 会同时带 arm64 和 v7a，体积多约 13MB
           flutter build apk --release \
@@ -205,6 +211,8 @@ jobs:
 
       - name: 校验签名与包名
         shell: bash
+        env:
+          EXPECT_CODE: ${{ github.run_number }}
         run: |
           set -e
           APK=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
@@ -224,6 +232,12 @@ jobs:
           "$ANDROID_HOME/build-tools/$BT/aapt2" dump badging "$APK" | grep -E "^package:" | tee /tmp/badging.txt
           if ! grep -q "name='$PKG_NAME'" /tmp/badging.txt; then
             echo "::error::包名不是 $PKG_NAME"
+            exit 1
+          fi
+          VC=$(grep -o "versionCode='[0-9]*'" /tmp/badging.txt | head -1 | tr -dc '0-9')
+          echo "APK versionCode=$VC"
+          if [ -z "$VC" ]; then
+            echo "::error::读不到 versionCode"
             exit 1
           fi
 
