@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 覆盖上游 drawable/ic_launcher_foreground.xml。
+     原因：HarmonyOS 的启动闪屏不读 windowSplashScreenAnimatedIcon，直接把
+     launcher icon 的前景层画到启动画面上；上游前景只有一只 P（#5CB67B），
+     所以夜间看到的就是绿 P。
+     这里把前景改成「深灰圆角块 + 浅蓝 P」，与 splash.png 里的图案同构，
+     只是没有白底：底色由 ic_launcher_background（白）+ 系统夜间压深决定。
+
+     尺寸换算（以 108dp 画布为准，参照上游 splash 图标 308px 外框）：
+       块  148 / 308 * 108 = 51.9dp，居中 → 28.05 ~ 79.95，圆角 14dp
+       P   原 path 高 36.45 → × 0.78 = 28.4dp
+ -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108.0"
+    android:viewportHeight="108.0">
+    <!-- 深灰圆角块 -->
+    <path
+        android:fillColor="#2E2F31"
+        android:pathData="M42.05,28.05H65.95A14,14 0 0 1 79.95,42.05V65.95A14,14 0 0 1 65.95,79.95H42.05A14,14 0 0 1 28.05,65.95V42.05A14,14 0 0 1 42.05,28.05Z" />
+    <!-- 浅蓝 P（上游 path 原样，绕自身中心缩放 0.78） -->
+    <group
+        android:pivotX="50.535"
+        android:pivotY="53.995"
+        android:scaleX="0.78"
+        android:scaleY="0.78">
+        <path
+            android:fillColor="#A9CBE8"
+            android:fillType="evenOdd"
+            android:pathData="M56,54L39.78,54l2.22,-10.94h14c3.02,0 5.47,2.45 5.47,5.47 0,3.02 -2.45,5.47 -5.47,5.47zM56,35.77h-9.62l-7.13,36.45h7.51L48.92,61.29h7.08c7.05,0 12.76,-5.71 12.76,-12.76 0,-7.05 -5.71,-12.76 -12.76,-12.76z" />
+    </group>
+</vector>
