@@ -115,43 +115,6 @@ jobs:
             cp -v "$f" "$dst/$rel"
           done
 
-      - name: 夜间启动图去白底
-        shell: bash
-        run: |
-          set -e
-          python3 -m pip install --quiet --disable-pip-version-check pillow
-          python3 - <<'PY'
-          from PIL import Image
-          import glob, os
-          cands = glob.glob('android/app/src/main/res/drawable-night-*/splash.png')
-          if not cands:
-              raise SystemExit('没有找到 drawable-night-*/splash.png')
-          src = max(cands, key=os.path.getsize)
-          im = Image.open(src).convert('RGBA')
-          w, h = im.size
-          px = im.load()
-          cleared = 0
-          for y in range(h):
-              for x in range(w):
-                  r, g, b, a = px[x, y]
-                  if r >= 235 and g >= 235 and b >= 235:
-                      px[x, y] = (r, g, b, 0)
-                      cleared += 1
-          # 夜间用一版，base 目录再存一份兜底，否则 lintVitalRelease 会报 MissingDefaultResource
-          targets = [
-              'android/app/src/main/res/drawable-night/splash_night_icon.png',
-              'android/app/src/main/res/drawable/splash_night_icon.png',
-          ]
-          for out in targets:
-              os.makedirs(os.path.dirname(out), exist_ok=True)
-              im.save(out)
-              size = os.path.getsize(out)
-              print('out=%s %dB' % (out, size))
-              if size < 500:
-                  raise SystemExit('输出图异常小，检查源图')
-          print('src=%s %dx%d cleared=%d' % (src, w, h, cleared))
-          PY
-
       - name: 改包名
         shell: bash
         run: |
