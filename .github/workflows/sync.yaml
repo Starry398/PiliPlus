@@ -115,36 +115,6 @@ jobs:
             cp -v "$f" "$dst/$rel"
           done
 
-      - name: 安装 ImageMagick
-        shell: bash
-        run: |
-          set -e
-          if command -v convert >/dev/null 2>&1; then
-            echo "已预装：$(convert -version | head -1)"
-            exit 0
-          fi
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends imagemagick
-          convert -version | head -1
-
-      - name: 生成夜间图标前景（白底 → 透明）
-        shell: bash
-        run: |
-          set -e
-          SRC=assets/images/logo/logo_2.png
-          if [ ! -f "$SRC" ]; then
-            echo "::error::找不到 $SRC"
-            exit 1
-          fi
-          command -v convert >/dev/null || { echo "::error::缺少 ImageMagick"; exit 1; }
-          DST=android/app/src/main/res/drawable-xxxhdpi
-          mkdir -p "$DST"
-          # 只把接近纯白的像素变透明，深灰圆角块与浅蓝 P 保持不变
-          convert "$SRC" -fuzz 8% -transparent white "$DST/ic_launcher_night_fg.png"
-          identify "$DST/ic_launcher_night_fg.png"
-          echo "透明度均值(1=全透明 0=全不透明):"
-          convert "$DST/ic_launcher_night_fg.png" -format "%[fx:mean.a]\n" info:
-
       - name: 改包名
         shell: bash
         run: |
