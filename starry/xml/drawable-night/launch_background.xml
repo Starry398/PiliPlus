@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 夜间启动背景（Android 11 及以下）：深色底 + 上游图标前景 vector -->
+<!-- 夜间启动背景（Android 11 及以下）：深色底 + 抠掉白底的 splash.png -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <bitmap android:gravity="fill" android:src="@drawable/background"/>
     </item>
     <item
-        android:drawable="@drawable/ic_launcher_foreground"
+        android:drawable="@drawable/splash"
         android:gravity="center" />
 </layer-list>
