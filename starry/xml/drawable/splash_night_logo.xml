@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 夜间启动图标：透明底，深灰圆角块 + 浅蓝 P。
-     画布 260、图形居中（group 平移 76），图形占比 21%，
+     画布 260、图形居中（group 平移 76），块占比 27.3%（71/260），
      抵消 Android 12 splash 把自定义 drawable 拉伸进 240dp 容器的放大，
-     对齐日间 launcher icon 的视觉尺寸（块宽约 166px @1080p）。
+     对齐上游夜间原版的视觉尺寸（块宽约 172px @1080p，P 高约 80px）。
      块色 #2E2F31（自 2.2.2 起）。 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -14,7 +14,11 @@
         android:translateY="76">
         <path
             android:fillColor="#2E2F31"
-            android:pathData="M38.5,26.5h31a12,12 0 0 1 12,12v31a12,12 0 0 1 -12,12h-31a12,12 0 0 1 -12,-12v-31a12,12 0 0 1 12,-12z" />
+            android:pathData="M110,94.5h40a15.5,15.5 0 0 1 15.5,15.5v40a15.5,15.5 0 0 1 -15.5,15.5h-40a15.5,15.5 0 0 1 -15.5,-15.5v-40a15.5,15.5 0 0 1 15.5,-15.5z" />
+    </group>
+    <group
+        android:translateX="79.3"
+        android:translateY="76">
         <path
             android:fillColor="#A9CBE8"
             android:fillType="evenOdd"
