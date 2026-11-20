@@ -11,7 +11,7 @@ on:
         required: false
         default: ''
       test_only:
-        description: '只出测试包（发布到 tag=test 的 release，不碰正式版本）'
+        description: '只出测试包（发布到 tag=test 的公开 release，不碰正式版本）'
         required: false
         type: boolean
         default: false
@@ -312,7 +312,6 @@ jobs:
         run: |
           set +e
           if [ "$OUT_TAG" = "test" ]; then
-            # 测试包每次重建，直接把旧 release 删掉重发，避免 asset 堆积
             rid=$(gh api "repos/${{ github.repository }}/releases/tags/test" --jq .id 2>/dev/null)
             if [ -n "$rid" ]; then
               echo "删除旧 test release id=$rid"
@@ -333,7 +332,7 @@ jobs:
         with:
           tag_name: ${{ needs.resolve.outputs.out_tag }}
           name: ${{ needs.resolve.outputs.out_tag == 'test' && 'test build' || needs.resolve.outputs.out_tag }}
-          body: ${{ needs.resolve.outputs.out_tag == 'test' && format('测试包 · 上游 {0} · run #{1}', needs.resolve.outputs.tag, github.run_number) || '' }}
+          body: ${{ needs.resolve.outputs.out_tag == 'test' && format('测试包 / 上游 {0} / run {1}', needs.resolve.outputs.tag, github.run_number) || '' }}
           files: PiliPlus_*_arm64-v8a*.apk
           generate_release_notes: ${{ needs.resolve.outputs.out_tag != 'test' }}
           overwrite_files: true
