@@ -83,7 +83,7 @@ jobs:
           fi
 
   build:
-    name: Build arm64
+    name: Build arm64-v8a
     needs: resolve
     if: needs.resolve.outputs.do_build == 'true'
     runs-on: ubuntu-latest
@@ -114,6 +114,18 @@ jobs:
             mkdir -p "$dst/$(dirname "$rel")"
             cp -v "$f" "$dst/$rel"
           done
+
+      - name: 安装 ImageMagick
+        shell: bash
+        run: |
+          set -e
+          if command -v convert >/dev/null 2>&1; then
+            echo "已预装：$(convert -version | head -1)"
+            exit 0
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends imagemagick
+          convert -version | head -1
 
       - name: 生成夜间图标前景（白底 → 透明）
         shell: bash
@@ -189,7 +201,7 @@ jobs:
         shell: pwsh
         run: lib/scripts/build.ps1 android
 
-      - name: Build arm64 APK
+      - name: Build arm64-v8a APK
         shell: bash
         env:
           TAG: ${{ needs.resolve.outputs.tag }}
@@ -265,14 +277,14 @@ jobs:
             exit 1
           fi
           mkdir -p out
-          cp "$APK" "out/PiliPlus_${TAG}_arm64.apk"
+          cp "$APK" "out/PiliPlus_${TAG}_arm64-v8a.apk"
           ls -lh out/
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: out/PiliPlus_*_arm64.apk
+          path: out/PiliPlus_*_arm64-v8a.apk
           if-no-files-found: error
 
   release:
@@ -286,12 +298,27 @@ jobs:
         with:
           name: apk
 
+      - name: 清理旧命名 asset（xxx_arm64.apk）
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+        run: |
+          set +e
+          ids=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
+            --jq '.assets[] | select(.name | endswith("_arm64.apk")) | .id')
+          for id in $ids; do
+            echo "删除旧 asset id=$id"
+            gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$id"
+          done
+          echo done
+
       - name: 发布 release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.resolve.outputs.tag }}
           name: ${{ needs.resolve.outputs.tag }}
-          files: PiliPlus_*_arm64.apk
+          files: PiliPlus_*_arm64-v8a.apk
           generate_release_notes: true
           overwrite_files: true
           token: ${{ secrets.GITHUB_TOKEN }}
