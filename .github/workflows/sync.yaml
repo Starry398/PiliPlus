@@ -115,6 +115,33 @@ jobs:
             cp -v "$f" "$dst/$rel"
           done
 
+      - name: 安装 ImageMagick
+        shell: bash
+        run: |
+          set -e
+          if command -v convert >/dev/null 2>&1; then
+            echo "已预装：$(convert -version | head -1)"
+            exit 0
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends imagemagick
+          convert -version | head -1
+
+      - name: 夜间 splash 白底转透明
+        shell: bash
+        run: |
+          set -e
+          mapfile -t files < <(find android/app/src/main/res -type f -path '*drawable-night*/splash.png')
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::没找到 drawable-night*/splash.png"
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            size=$(identify -format '%wx%h' "$f")
+            convert "$f" -fuzz 10% -transparent white "$f"
+            echo "处理 $f (${size}) → 透明像素均值 $(convert "$f" -format '%[fx:mean.a]' info:)"
+          done
+
       - name: 改包名
         shell: bash
         run: |
