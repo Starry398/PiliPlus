@@ -137,11 +137,19 @@ jobs:
                   if r >= 235 and g >= 235 and b >= 235:
                       px[x, y] = (r, g, b, 0)
                       cleared += 1
-          out = 'android/app/src/main/res/drawable-night/splash_night_icon.png'
-          im.save(out)
-          print('src=%s %dx%d cleared=%d out=%s %dB' % (src, w, h, cleared, out, os.path.getsize(out)))
-          if os.path.getsize(out) < 500:
-              raise SystemExit('输出图异常小，检查源图')
+          # 夜间用一版，base 目录再存一份兜底，否则 lintVitalRelease 会报 MissingDefaultResource
+          targets = [
+              'android/app/src/main/res/drawable-night/splash_night_icon.png',
+              'android/app/src/main/res/drawable/splash_night_icon.png',
+          ]
+          for out in targets:
+              os.makedirs(os.path.dirname(out), exist_ok=True)
+              im.save(out)
+              size = os.path.getsize(out)
+              print('out=%s %dB' % (out, size))
+              if size < 500:
+                  raise SystemExit('输出图异常小，检查源图')
+          print('src=%s %dx%d cleared=%d' % (src, w, h, cleared))
           PY
 
       - name: 改包名
