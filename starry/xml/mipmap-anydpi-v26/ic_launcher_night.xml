@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 夜间启动用的自适应图标：与上游 launcher icon 同一条渲染路径，
-     只把背景从 #ffffff 换成 #212121（与启动背景同色，白方块自然消失），
-     前景用 CI 生成的「白底→透明」版 logo_2.png（ic_launcher_night_fg）。
-     这样块尺寸、P 位置完全由系统按上游同样的规则绘制，无需手绘坐标。 -->
+<!-- 夜间启动用的自适应图标：与上游 launcher icon 同一条渲染路径。
+     前景直接引用上游自己的 @drawable/ic_launcher_foreground（vector，只有 P 字，
+     约占 108dp 画布的 1/3，颜色引用 @color/ic_launcher_foreground），
+     **不要**用 assets/images/logo/logo_2.png——那张是铺满整图的大 P，用作前景会
+     被自适应规则放大成巨型字母。
+     只把背景从 #ffffff 换成 #212121，与启动背景同色，白方块自然消失。 -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/splash_night_bg" />
-    <foreground android:drawable="@drawable/ic_launcher_night_fg" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
 </adaptive-icon>
