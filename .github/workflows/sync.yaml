@@ -20,6 +20,10 @@ on:
         required: false
         type: boolean
         default: false
+      pkg_suffix:
+        description: '包名后缀，如 .test 会装成 com.example.piliplus.sky.test（可与正式包共存）'
+        required: false
+        default: ''
 
 concurrency:
   group: sync
@@ -29,7 +33,7 @@ permissions:
   contents: write
 
 env:
-  PKG_NAME: com.example.piliplus.sky
+  PKG_NAME: com.example.piliplus.sky${{ github.event.inputs.pkg_suffix }}
 
 jobs:
   resolve:
@@ -220,7 +224,6 @@ jobs:
           # 版本基数 major*10000 + minor*100 + patch，再 ×1000 给「构建序号」留位，
           # 保证同一版本号每次重建的 versionCode 都不同（否则同 versionCode+同签名
           # 会被安装器当成「已是最新」而静默跳过覆盖安装）。
-          # 2.2.1 + 第 N 次构建 → 20201000 + (N % 1000)，区间严格小于下一版本 20202000。
           BASE=$((MAJOR*10000 + MINOR*100 + PATCH))
           SEQ=$((GITHUB_RUN_NUMBER % 1000))
           NUM=$((BASE*1000 + SEQ))
@@ -273,15 +276,22 @@ jobs:
             ls -l build/app/outputs/flutter-apk/
             exit 1
           fi
+          SUFFIX="${{ github.event.inputs.pkg_suffix }}"
+          SUFFIX="${SUFFIX#.}"
+          if [ -n "$SUFFIX" ]; then
+            OUT="out/PiliPlus_${TAG}_arm64-v8a_${SUFFIX}.apk"
+          else
+            OUT="out/PiliPlus_${TAG}_arm64-v8a.apk"
+          fi
           mkdir -p out
-          cp "$APK" "out/PiliPlus_${TAG}_arm64-v8a.apk"
+          cp "$APK" "$OUT"
           ls -lh out/
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: out/PiliPlus_*_arm64-v8a.apk
+          path: out/PiliPlus_*_arm64-v8a*.apk
           if-no-files-found: error
 
   release:
