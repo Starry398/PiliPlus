@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 夜间自适应图标的背景：与 windowSplashScreenBackground 一致，#212121 -->
+    <color name="splash_night_bg">#212121</color>
+</resources>

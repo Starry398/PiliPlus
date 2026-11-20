@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 夜间启动用的自适应图标：与上游 launcher icon 同一条渲染路径，
+     只把背景从 #ffffff 换成 #212121（与启动背景同色，白方块自然消失），
+     前景用 CI 生成的「白底→透明」版 logo_2.png（ic_launcher_night_fg）。
+     这样块尺寸、P 位置完全由系统按上游同样的规则绘制，无需手绘坐标。 -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/splash_night_bg" />
+    <foreground android:drawable="@drawable/ic_launcher_night_fg" />
+</adaptive-icon>

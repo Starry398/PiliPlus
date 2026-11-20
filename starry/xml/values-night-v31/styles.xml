@@ -8,8 +8,8 @@
         <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowSplashScreenBackground">#212121</item>
-        <!-- vector：深灰圆角块 + 浅蓝 P，透明底，与浅色图标对称 -->
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_night_logo</item>
+        <!-- 夜间自适应图标：背景 #212121 + 透明底前景，渲染路径与上游 launcher icon 完全一致 -->
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_night</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
