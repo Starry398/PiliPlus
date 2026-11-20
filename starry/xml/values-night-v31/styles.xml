@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 【诊断版】背景故意设成亮粉色，用来确认 HarmonyOS 是否真的读这套 theme：
-         - 冷启动看到粉底 = theme 生效
-         - 仍是深灰 = theme 被忽略，改 styles 整条路走不通
-         验证完改回 #212121。 -->
+    <!-- 诊断结论（#24）：背景属性生效（粉底已验证），但启动图标的图片内容来自
+         安装时缓存的图标快照，不读当前 APK 的 ic_launcher_foreground。
+         所以这里只保留背景色，AnimatedIcon 留着无害。 -->
     <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:defaultFocusHighlightEnabled">false</item>
         <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-        <item name="android:windowSplashScreenBackground">#FF00FF</item>
+        <item name="android:windowSplashScreenBackground">#212121</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
